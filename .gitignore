@@ -1,0 +1,6 @@
+# what an import writes, and Python's caches
+/out/
+*.map
+maps/
+maps.partial/
+__pycache__/
