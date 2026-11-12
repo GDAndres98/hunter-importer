@@ -1,4 +1,4 @@
 [submodule "opence"]
 	path = opence
-	url = https://github.com/GDAndres98/OpenCE.git
+	url = https://github.com/GDAndres98/HunterCE.git
 	branch = mcc-extractor

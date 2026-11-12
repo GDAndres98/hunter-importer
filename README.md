@@ -23,7 +23,7 @@ disc's map through a fingerprint:
 ## HunterCE
 
 The maps are played with **HunterCE**, the importer's pair: a version of OpenCE, on
-[a fork of OpenCE](https://github.com/GDAndres98/OpenCE) (its `mcc-testing` branch). OpenCE itself
+[a fork of OpenCE](https://github.com/GDAndres98/HunterCE) (its `mcc-testing` branch). OpenCE itself
 needs only a few small changes to play these maps:
 - each change is a branch of the fork, offered to OpenCE as its own small pull request;
 - HunterCE is all of them together.
