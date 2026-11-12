@@ -4,3 +4,6 @@
 maps/
 maps.partial/
 __pycache__/
+
+# make_hunterce.sh's folder to play from
+/HunterCE/
