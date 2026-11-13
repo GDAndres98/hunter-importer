@@ -16,7 +16,8 @@ At the end, each map is reported:
   does not when the level switches to it).
 
 The maps by default: every map the importer has the disc's values for (the
-submodule's port/assets/mcc/<map>.p2).
+submodule's port/assets/mcc/<map>.p2), but those held back (HELD_BACK),
+which are imported only when named.
 """
 
 import argparse
@@ -40,9 +41,19 @@ TAG_CACHE_SIZE = 0x1600000
 SECTOR = 0x800
 
 
+# maps left out unless named, and why (ROADMAP.md): the six multiplayer maps
+# that differ from the disc's only in their flag bases (and chillout's
+# teleporter bases), which have no collision in MCC; to be discussed
+HELD_BACK = {
+    name: "its flag bases have no collision in MCC (ROADMAP.md, the bases)"
+    for name in ("chillout", "longest", "prisoner", "putput", "ratrace", "wizard")
+}
+
+
 def default_maps():
-    """every map the importer has the disc's values for, but the menus' map last"""
-    names = sorted(path.stem for path in DATA.glob("*.p2"))
+    """every map the importer has the disc's values for but those held back,
+    the menus' map last"""
+    names = sorted(path.stem for path in DATA.glob("*.p2") if path.stem not in HELD_BACK)
     return [name for name in names if name != "ui"] + (["ui"] if "ui" in names else [])
 
 
@@ -120,6 +131,9 @@ def main():
     if (out / "maps").exists():
         sys.exit(f"{out / 'maps'} exists: move it aside first (the import writes a whole maps folder)")
     names = arguments.maps or default_maps()
+    if not arguments.maps:
+        for name, why in sorted(HELD_BACK.items()):
+            print(f"  {name}: held back ({why}); name it to import it anyway")
     if halo1 != "steam":
         names.sort(key=lambda name: -mcc_size(halo1, name))
     partial = out / PARTIAL
