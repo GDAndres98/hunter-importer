@@ -57,10 +57,10 @@ python import_mcc.py --game opence/build/windows/halo.exe --from steam --out <ga
 
 ### A folder to play from (Windows)
 
-`make_hunterce.sh` (from Git Bash) does it all: it builds the importer and HunterCE (a checkout
-of the fork's `mcc-testing`), imports every map, and puts `halo.exe`, `SDL3.dll`, `maps` and the
-import's report in `HunterCE/` beside it. Start `halo.exe` there. The script's top says what it
-needs and what can be set (MCC's folder, HunterCE's checkout, another output folder).
+`python make_hunterce.py` does it all: it builds the importer and HunterCE (a checkout of the
+fork's `mcc-testing`), imports every map, and puts `halo.exe`, `SDL3.dll`, `maps` and the
+import's report in `HunterCE/` beside it. Start `halo.exe` there. `--help` says what it needs and
+what can be set (MCC's folder, HunterCE's checkout, another output folder).
 
 Only MCC's files are read. Nothing of MCC's is in this repository, and of the disc's only values:
 numbers, names, orders and hashes, never pictures, sounds, models or geometry.
