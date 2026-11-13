@@ -54,6 +54,10 @@ python import_mcc.py --game opence/build/windows/halo.exe --from steam --out <ga
   every map is written. An existing `maps` folder is never written over.
 - **The report:** at the end, for each map, whether it is the disc's map and whether all its
   parts load.
+- **Maps that are not the disc's** (Halo PC's rebuilds of the multiplayer maps, and the maps MCC has
+  from Halo PC alone) do not go to `maps`: they are written as MCC's own, a package in
+  `<game data folder>/mcc_maps/mcc_multiplayer` for OpenCE's MCC maps (with their sounds from MCC's
+  banks). They play with other MCC players only.
 
 ### A folder to play from (Windows)
 

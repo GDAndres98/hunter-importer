@@ -7,14 +7,15 @@ Windows, into one folder to play from:
 The folder (by default HunterCE/, next to this script) gets:
   halo.exe, SDL3.dll   HunterCE, built from the fork's mcc-testing branch
   maps/                every map the importer has the disc's values for
+  mcc_maps/            MCC's own maps (not the disc's), for OpenCE's MCC loader
   import_report.txt    the importer's report: each map's fingerprint and BSPs
 Start halo.exe there: the game finds maps/ next to it, and writes its
 config.toml and debug.txt there.
 
 It needs Python, ninja and LLVM (clang), as the Windows build does
 (opence/port/windows/README.md), and git. Each option below can also be set by
-the environment variable named in its help. The maps/ of an earlier run is kept
-as maps.previous/ (only the last one).
+the environment variable named in its help. The maps/ and mcc_maps/ of an earlier run are kept
+as maps.previous/ and mcc_maps.previous/ (only the last one).
 """
 
 import argparse
@@ -71,11 +72,16 @@ def import_maps(importer, halo1, out, jobs):
         process.wait()
     if process.returncode != 0:
         fail(f"the import failed (exit code {process.returncode}); the maps/ of {out} is unchanged")
-    previous = out / "maps.previous"
-    shutil.rmtree(previous, ignore_errors=True)
-    if (out / "maps").is_dir():
-        (out / "maps").rename(previous)
-    (staging / "maps").rename(out / "maps")
+    # (maps/, and mcc_maps/ with MCC's own maps: each earlier one kept as
+    # <name>.previous)
+    for folder in ("maps", "mcc_maps"):
+        if not (staging / folder).is_dir():
+            continue
+        previous = out / f"{folder}.previous"
+        shutil.rmtree(previous, ignore_errors=True)
+        if (out / folder).is_dir():
+            (out / folder).rename(previous)
+        (staging / folder).rename(out / folder)
     staging.rmdir()
 
 

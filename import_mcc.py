@@ -17,7 +17,12 @@ At the end, each map is reported:
 
 The maps by default: every map the importer has the disc's values for (the
 submodule's port/assets/mcc/<map>.p2), but those held back (HELD_BACK),
-which are imported only when named.
+which are imported only when named. With no map named, the maps that are
+not the disc's (those held back, and the multiplayer maps MCC has from Halo
+PC) are also written as MCC's own, a package for OpenCE's MCC loader in
+<out>/mcc_maps/mcc_multiplayer: MCC's map files with their sounds given back
+from MCC's banks (one sounds.map), and MCC's bitmaps.map. They play only with
+other MCC players.
 """
 
 import argparse
@@ -41,13 +46,21 @@ TAG_CACHE_SIZE = 0x1600000
 SECTOR = 0x800
 
 
-# maps left out unless named, and why (ROADMAP.md): the six multiplayer maps
-# that differ from the disc's only in their flag bases (and chillout's
-# teleporter bases), which have no collision in MCC; to be discussed
-HELD_BACK = {
-    name: "its flag bases have no collision in MCC (ROADMAP.md, the bases)"
-    for name in ("chillout", "longest", "prisoner", "putput", "ratrace", "wizard")
-}
+# maps left out of maps/ unless named, and why (ROADMAP.md): they are not the
+# disc's, so they play only with other MCC players, as MCC's own maps in the
+# package below
+HELD_BACK = dict(
+    {name: "its flag bases have no collision in MCC (ROADMAP.md, the bases)"
+     for name in ("chillout", "longest", "prisoner", "putput", "ratrace", "wizard")},
+    **{name: "Halo PC's rebuild, with other collision than the disc's"
+       for name in ("beavercreek", "bloodgulch", "boardingaction", "carousel", "damnation", "hangemhigh",
+                    "sidewinder")})
+# the maps written as MCC's own, a package for OpenCE's MCC loader
+# (mcc_maps/<PACKAGE>: the game's --mcc-package): those held back, and the
+# multiplayer maps MCC has from Halo PC that the disc has not
+PACKAGE = "mcc_multiplayer"
+PACKAGED = sorted(HELD_BACK) + ["dangercanyon", "deathisland", "gephyrophobia", "icefields", "infinity", "timberland"]
+PACKAGE_PARTIAL = "mcc_maps.partial"
 
 
 def default_maps():
@@ -55,6 +68,26 @@ def default_maps():
     the menus' map last"""
     names = sorted(path.stem for path in DATA.glob("*.p2") if path.stem not in HELD_BACK)
     return [name for name in names if name != "ui"] + (["ui"] if "ui" in names else [])
+
+
+def write_package(game, halo1, out):
+    """MCC's own maps into <out>/mcc_maps.partial/<PACKAGE>, with their
+    sounds.map and MCC's bitmaps.map: (written, lines)"""
+    folder = out / PACKAGE_PARTIAL / PACKAGE
+    shutil.rmtree(out / PACKAGE_PARTIAL, ignore_errors=True)
+    folder.mkdir(parents=True)
+    environment = dict(os.environ, HALO_DATA_ROOT=str(out))
+    command = [str(game), "--mcc-package", f"d:\\{PACKAGE_PARTIAL}\\{PACKAGE}", "--from", str(halo1), *PACKAGED]
+    result = subprocess.run(command, env=environment, capture_output=True, text=True, errors="replace")
+    lines = (result.stdout + result.stderr).splitlines()
+    # (MCC's folder as the game found it: Steam's, for --from steam)
+    source = next((line.split("mcc import: from ", 1)[1] for line in lines if line.startswith("mcc import: from ")),
+                  str(halo1))
+    bitmaps = Path(source) / "maps" / "bitmaps.map"
+    if result.returncode != 0 or not bitmaps.is_file():
+        return False, lines + ([] if bitmaps.is_file() else [f"{bitmaps} is missing"])
+    shutil.copyfile(bitmaps, folder / "bitmaps.map")
+    return True, lines
 
 
 def mcc_size(halo1, name):
@@ -121,19 +154,22 @@ def main():
     parser.add_argument("--out", required=True, help="the game data folder the maps folder is written to")
     parser.add_argument("--jobs", type=int, default=max(1, min((os.cpu_count() or 2) - 1, 12)),
                         help="maps imported at once (each takes up to 1 GB of memory)")
-    parser.add_argument("maps", nargs="*", help="the maps (default: every map the importer has values for)")
+    parser.add_argument("maps", nargs="*", help="the maps (default: every map the importer has values for, and "
+                        "the package of MCC's own maps)")
     arguments = parser.parse_args()
 
     game, out = Path(arguments.game).resolve(), Path(arguments.out).resolve()
     halo1 = arguments.halo1
     if halo1 != "steam" and not (Path(halo1) / "maps" / "a10.map").is_file():
         sys.exit(f"{halo1} is not MCC's halo1 folder (it has no maps/a10.map)")
-    if (out / "maps").exists():
-        sys.exit(f"{out / 'maps'} exists: move it aside first (the import writes a whole maps folder)")
+    package = not arguments.maps
+    for folder in ["maps"] + (["mcc_maps"] if package else []):
+        if (out / folder).exists():
+            sys.exit(f"{out / folder} exists: move it aside first (the import writes a whole {folder} folder)")
     names = arguments.maps or default_maps()
-    if not arguments.maps:
+    if package:
         for name, why in sorted(HELD_BACK.items()):
-            print(f"  {name}: held back ({why}); name it to import it anyway")
+            print(f"  {name}: not in maps ({why}): MCC's own, in mcc_maps\\{PACKAGE}")
     if halo1 != "steam":
         names.sort(key=lambda name: -mcc_size(halo1, name))
     partial = out / PARTIAL
@@ -155,8 +191,24 @@ def main():
                 print(f"\n{name}:\n  " + "\n  ".join(lines[-8:]))
         shutil.rmtree(partial, ignore_errors=True)
         sys.exit(f"{len(failed)} of {len(names)} maps failed ({', '.join(failed)}): nothing written")
+    package_lines = []
+    if package:
+        print(f"writing {len(PACKAGED)} maps as MCC's own into {out / PACKAGE_PARTIAL / PACKAGE}", flush=True)
+        written, package_lines = write_package(game, halo1, out)
+        if not written:
+            print("\n  " + "\n  ".join(package_lines[-8:]))
+            shutil.rmtree(partial, ignore_errors=True)
+            shutil.rmtree(out / PACKAGE_PARTIAL, ignore_errors=True)
+            sys.exit("the package of MCC's own maps failed: nothing written")
     partial.rename(out / "maps")
+    if package:
+        (out / PACKAGE_PARTIAL).rename(out / "mcc_maps")
     report(out, sorted(results))
+    if package:
+        print(f"\nMCC's own maps, in mcc_maps\\{PACKAGE} (they play with other MCC players only):")
+        for line in package_lines:
+            if line.startswith("mcc package: ") and (" sounds given " in line or "sounds.map: " in line):
+                print("  " + line[len("mcc package: "):])
     return 0
 
 
