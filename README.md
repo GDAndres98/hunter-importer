@@ -2,7 +2,7 @@
 
 <h1 align="center">Hunter Importer</h1>
 
-<p align="center"><i>Hunters always come in pairs. So should Halo players.</i></p>
+<p align="center"><i>Hunters always come in pairs. So should OpenCE datasources</i></p>
 
 ## Why
 
