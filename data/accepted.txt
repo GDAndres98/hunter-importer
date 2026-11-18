@@ -1,0 +1,36 @@
+# The differences the fingerprint accepts (mcc_import_fingerprint.c in the
+# game): parts that MCC's maps have otherwise than the disc's, but that
+# change nothing the host decides, or little. README.md says why each one is.
+# A line each, its fields separated by tabs:
+#   tag   <map, or * for every map>   <group:path>      a whole tag
+#   part  <group:path>   <field>   -                    a field of the tag's
+#   part  <group:path>   -   <animation's name>         an animation of a graph
+# The fingerprints (<map>.fp) are made with these: change them together.
+
+# the flamethrower, which no map of the disc's places, no weapon set gives
+# (the globals' list's entry for it is read only to preload it) and, in c20
+# and d20, only two Flood variants carry, which no squad uses and no script
+# names
+tag	*	coll:weapons\flamethrower\flamethrower
+tag	*	antr:weapons\flamethrower\fp\fp
+
+# the multiplayer bases' collision, which MCC lacks, built from MCC's
+# visible model (mcc_import_collision.c): within a few centimetres of the
+# disc's (accepted 2026-11-18, after games with it)
+tag	chillout	coll:scenery\flag_base\flag_base
+tag	chillout	coll:scenery\teleporter_base\teleporter_base
+tag	longest	coll:scenery\flag_base\flag_base
+tag	prisoner	coll:scenery\flag_base\flag_base
+tag	putput	coll:scenery\flag_base\flag_base
+tag	ratrace	coll:scenery\flag_base\flag_base
+tag	wizard	coll:scenery\flag_base\flag_base
+
+# the field generator's collision, made again by Halo PC's tools: the same
+# size, health and materials, its surfaces up to 0.07 world units apart (a
+# shot or a step beside it, on the machine that makes it)
+part	coll:scenery\c_field_generator\c_field_generator	bsps	-
+
+# the cyborg as a warthog's passenger with a rifle: a still pose in MCC, the
+# disc's moves a little (a seated unit's root motion is never applied: only
+# where its body is, on the machine that draws it)
+part	antr:characters\cyborg\cyborg	-	W-passenger rifle idle

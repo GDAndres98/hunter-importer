@@ -5,8 +5,9 @@ Collection as Xbox maps, into a game data folder for OpenCE:
     python import_mcc.py --game <OpenCE build> --from <halo1 folder | steam> --out <data folder> [<map>...]
 
 The conversion itself is OpenCE's `halo --import-mcc` (the `opence`
-submodule, branch mcc-extractor), run once per map, several at once. The
-maps are written to <out>/maps.partial, which becomes <out>/maps only when
+submodule, branch mcc-extractor), run once per map, several at once, with
+this repository's data (data/: the disc's values, which --mcc-data gives
+it). The maps are written to <out>/maps.partial, which becomes <out>/maps only when
 every map is written; a failure or Ctrl-C leaves no maps folder.
 
 At the end, each map is reported:
@@ -15,8 +16,8 @@ At the end, each map is reported:
 - whether every structure BSP fits above its tags (the game refuses one that
   does not when the level switches to it).
 
-The maps by default: every map the importer has the disc's values for (the
-submodule's port/assets/mcc/<map>.p2), but those held back (HELD_BACK),
+The maps by default: every map the importer has the disc's values for
+(data/<map>.p2), but those held back (HELD_BACK),
 which are imported only when named. With no map named, the maps that are
 not the disc's (those held back, and the multiplayer maps MCC has from Halo
 PC) are also written as MCC's own, a package for OpenCE's MCC loader in
@@ -37,7 +38,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-DATA = ROOT / "opence" / "port" / "assets" / "mcc"
+DATA = ROOT / "data"
 PARTIAL = "maps.partial"
 # the Xbox's tag cache: its address and size (OpenCE's physical_memory_map.h),
 # and a cache file's sector (a structure BSP is read in whole sectors)
@@ -74,7 +75,8 @@ def write_package(game, halo1, out):
     shutil.rmtree(out / PACKAGE_PARTIAL, ignore_errors=True)
     folder.mkdir(parents=True)
     environment = dict(os.environ, HALO_DATA_ROOT=str(out))
-    command = [str(game), "--mcc-package", f"d:\\{PACKAGE_PARTIAL}\\{PACKAGE}", "--from", str(halo1), *PACKAGED]
+    command = [str(game), "--mcc-data", str(DATA), "--mcc-package", f"d:\\{PACKAGE_PARTIAL}\\{PACKAGE}", "--from",
+               str(halo1), *PACKAGED]
     result = subprocess.run(command, env=environment, capture_output=True, text=True, errors="replace")
     lines = (result.stdout + result.stderr).splitlines()
     # (MCC's folder as the game found it: Steam's, for --from steam)
@@ -95,7 +97,7 @@ def mcc_size(halo1, name):
 def import_one(game, halo1, out, name, lock):
     """one map, by its own copy of the game: (name, written, lines)"""
     environment = dict(os.environ, HALO_DATA_ROOT=str(out))
-    command = [str(game), "--import-mcc", "d:\\" + PARTIAL, "--from", str(halo1), name]
+    command = [str(game), "--mcc-data", str(DATA), "--import-mcc", "d:\\" + PARTIAL, "--from", str(halo1), name]
     result = subprocess.run(command, env=environment, capture_output=True, text=True, errors="replace")
     lines = (result.stdout + result.stderr).splitlines()
     written = result.returncode == 0 and any(f"mcc import: {name}: " in line and " structure bsps, " in line

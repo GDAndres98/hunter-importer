@@ -33,7 +33,8 @@ The fork's `main` stays equal to OpenCE's.
 ## Status
 
 Early. The conversion is OpenCE's own code (the fork's `mcc-extractor` branch, in the `opence`
-submodule), run once per map. [ROADMAP.md](ROADMAP.md) has the steps; the next is a campaign
+submodule), run once per map. The disc's values it needs are this repository's own, in
+[data](data/README.md); the game has no copy of them. [ROADMAP.md](ROADMAP.md) has the steps; the next is a campaign
 whose every level matches the disc.
 
 ## Use
@@ -66,8 +67,8 @@ fork's `mcc-testing`), imports every map, and puts `halo.exe`, `SDL3.dll`, `maps
 import's report in `HunterCE/` beside it. Start `halo.exe` there. `--help` says what it needs and
 what can be set (MCC's folder, HunterCE's checkout, another output folder).
 
-Only MCC's files are read. Nothing of MCC's is in this repository, and of the disc's only values:
-numbers, names, orders and hashes, never pictures, sounds, models or geometry.
+Only MCC's files are read. Nothing of MCC's is in this repository, and of the disc's only values
+(in `data`): numbers, names, orders and hashes, never pictures, sounds, models or geometry.
 
 ## Licence
 
