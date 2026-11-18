@@ -49,12 +49,9 @@ SECTOR = 0x800
 # maps left out of maps/ unless named, and why (ROADMAP.md): they are not the
 # disc's, so they play only with other MCC players, as MCC's own maps in the
 # package below
-HELD_BACK = dict(
-    {name: "its flag bases have no collision in MCC (ROADMAP.md, the bases)"
-     for name in ("chillout", "longest", "prisoner", "putput", "ratrace", "wizard")},
-    **{name: "Halo PC's rebuild, with other collision than the disc's"
-       for name in ("beavercreek", "bloodgulch", "boardingaction", "carousel", "damnation", "hangemhigh",
-                    "sidewinder")})
+HELD_BACK = {name: "Halo PC's rebuild, with other collision than the disc's"
+             for name in ("beavercreek", "bloodgulch", "boardingaction", "carousel", "damnation", "hangemhigh",
+                          "sidewinder")}
 # the maps written as MCC's own, a package for OpenCE's MCC loader
 # (mcc_maps/<PACKAGE>: the game's --mcc-package): those held back, and the
 # multiplayer maps MCC has from Halo PC that the disc has not
